@@ -431,7 +431,7 @@ class Board:
         for row in self.grid:
             print('|' + '|'.join([p.color if p else ' ' for p in row]) + '|')
 
-# --- Пример работы ---
+# Пример работы
 game = Board()
 print("Начальная доска:")
 game.display()
