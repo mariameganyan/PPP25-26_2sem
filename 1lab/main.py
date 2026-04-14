@@ -352,3 +352,90 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+#доп задание 2
+class Piece:
+    """Базовый класс для фигуры (как в шахматах)"""
+    def __init__(self, color, row, col):
+        self.color = color  # 'W' для белых, 'B' для черных
+        self.row = row
+        self.col = col
+
+class Checker(Piece):
+    """Класс Шашки, наследующийся от Фигуры"""
+    def can_move(self, target_row, target_col, board):
+        # Простая проверка: ход по диагонали на 1 клетку
+        row_diff = target_row - self.row
+        col_diff = abs(target_col - self.col)
+        
+        # Направление движения (белые вверх, черные вниз)
+        direction = -1 if self.color == 'W' else 1
+        
+        # Обычный ход
+        if row_diff == direction and col_diff == 1:
+            if board[target_row][target_col] is None:
+                return True
+        
+        # Логика боя (прыжок через фигуру)
+        if row_diff == 2 * direction and col_diff == 2:
+            mid_row = self.row + direction
+            mid_col = self.col + (1 if target_col > self.col else -1)
+            mid_piece = board[mid_row][mid_col]
+            if mid_piece and mid_piece.color != self.color and board[target_row][target_col] is None:
+                return "capture"
+        
+        return False
+
+class Board:
+    def __init__(self):
+        self.grid = [[None for _ in range(8)] for _ in range(8)]
+        self.setup_checkers()
+
+    def setup_checkers(self):
+        # Расстановка черных (сверху) и белых (снизу)
+        for r in range(3):
+            for c in range(8):
+                if (r + c) % 2 != 0: self.grid[r][c] = Checker('B', r, c)
+        for r in range(5, 8):
+            for c in range(8):
+                if (r + c) % 2 != 0: self.grid[r][c] = Checker('W', r, c)
+
+    def move(self, r1, c1, r2, c2):
+        checker = self.grid[r1][c1]
+        if not checker: return "Здесь нет фигуры!"
+        
+        result = checker.can_move(r2, c2, self.grid)
+        if result:
+            # Если это был бой, удаляем съеденную фигуру
+            if result == "capture":
+                mid_row, mid_col = (r1 + r2) // 2, (c1 + c2) // 2
+                self.grid[mid_row][mid_col] = None
+            
+            # Перемещаем фигуру
+            self.grid[r2][c2] = checker
+            self.grid[r1][c1] = None
+            checker.row, checker.col = r2, c2
+            return "Ход выполнен"
+        return "Неверный ход"
+
+    def display(self):
+        for row in self.grid:
+            print('|' + '|'.join([p.color if p else ' ' for p in row]) + '|')
+
+# --- Пример работы ---
+game = Board()
+print("Начальная доска:")
+game.display()
+
+# Пример хода: белая шашка с (5,2) на (4,3)
+print("\nХод белых (5,2) -> (4,3):", game.move(5, 2, 4, 3))
+game.display()
